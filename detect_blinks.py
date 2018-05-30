@@ -8,12 +8,12 @@ from imutils.video import FileVideoStream
 from imutils.video import VideoStream
 from imutils import face_utils
 from datetime import datetime
-from datetime import timedelta
 import argparse
 import time
 import dlib
 import cv2
 import pandas as pd
+
 
 def eye_aspect_ratio(eye):
   # compute the euclidean distances between the two sets of
@@ -30,16 +30,16 @@ def eye_aspect_ratio(eye):
 
   # return the eye aspect ratio
   return ear
- 
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--shape-predictor",default="shape_predictor_68_face_landmarks.dat",
   help="path to facial landmark predictor")
 ap.add_argument("-v", "--video", type=str, default="camera",
   help="path to input video file")
-ap.add_argument("-t", "--threshold", type = float, default=0.27,
+ap.add_argument("-t", "--threshold", type = float, default=0.25,
   help="threshold to determine closed eyes")
-ap.add_argument("-f", "--frames", type = int, default=2,
+ap.add_argument("-f", "--frames", type = int, default=3,
   help="the number of consecutive frames the eye must be below the threshold")
 
 def main() :
@@ -50,6 +50,9 @@ def main() :
     # initialize the frame counters and the total number of blinks
     COUNTER = 0
     TOTAL = 0
+
+
+    
 
     # initialize dlib's face detector (HOG-based) and then create
     # the facial landmark predictor
@@ -87,7 +90,6 @@ def main() :
       frame = vs.read()
       #frame = imutils.resize(frame, width=450)
       gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
       # detect faces in the grayscale frame
       rects = detector(gray, 0)
     
@@ -141,12 +143,13 @@ def main() :
           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
      
       # show the frame
-      cv2.imshow("Frame", frame)
+      cv2.imshow("Are you tired ?", frame)
       key = cv2.waitKey(1) & 0xFF
      
       # if the `q` key was pressed, break from the loop
-      if key == ord("q"):
+      if key == ord("q") or key == 27 :
         df.to_csv("data")
+        #df.to_excel("data.xlsx")
         break
     
     # do a bit of cleanup
