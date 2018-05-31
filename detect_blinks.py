@@ -48,6 +48,7 @@ def main() :
     EYE_AR_CONSEC_FRAMES = args['frames']
     df = pd.DataFrame(columns=["bid", "time"])
     # initialize the frame counters and the total number of blinks
+
     COUNTER = 0
     TOTAL = 0
 
@@ -131,6 +132,7 @@ def main() :
           if COUNTER >= EYE_AR_CONSEC_FRAMES:
             TOTAL += 1
             df.loc[df.shape[0]+1] = {"bid":TOTAL,"time":datetime.now()}
+            time.sleep(0.50)
     
           # reset the eye frame counter
           COUNTER = 0
@@ -148,8 +150,9 @@ def main() :
      
       # if the `q` key was pressed, break from the loop
       if key == ord("q") or key == 27 :
-        df.to_csv("data")
-        #df.to_excel("data.xlsx")
+        filepath = str(int(time.time()))
+        df.to_csv(filepath+"data")
+        df.to_excel(filepath+"data.xlsx")
         break
     
     # do a bit of cleanup
