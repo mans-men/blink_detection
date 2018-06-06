@@ -41,11 +41,14 @@ ap.add_argument("-t", "--threshold", type = float, default=0.25,
   help="threshold to determine closed eyes")
 ap.add_argument("-f", "--frames", type = int, default=3,
   help="the number of consecutive frames the eye must be below the threshold")
+ap.add_argument("-s", "--interval", type = int, default=20,
+  help="the interval of saving data , minutes")
 
 def main() :
     args = vars(ap.parse_args())
     EYE_AR_THRESH = args['threshold']
     EYE_AR_CONSEC_FRAMES = args['frames']
+    INTERVAL = args['interval']
     df = pd.DataFrame(columns=["bid", "time"])
     # initialize the frame counters and the total number of blinks
 
@@ -79,6 +82,7 @@ def main() :
     time.sleep(1.0)
     ear = 0  
     # loop over frames from the video stream
+    start = datetime.now()
     while True:
       # if this is a file video stream, then we need to check if
       # there any more frames left in the buffer to process
@@ -154,6 +158,11 @@ def main() :
         df.to_csv(filepath+"data")
         df.to_excel(filepath+"data.xlsx")
         break
+      if (datetime.now()-start).seconds >= INTERVAL*60:
+        start = datetime.now()
+        filepath = str(int(time.time()))
+        df.to_csv(filepath+"data")
+        df.to_excel(filepath+"data.xlsx")
     
     # do a bit of cleanup
     cv2.destroyAllWindows()
