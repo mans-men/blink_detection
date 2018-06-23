@@ -13,6 +13,7 @@ import time
 import dlib
 import cv2
 import pandas as pd
+from socket import *
 
 
 def eye_aspect_ratio(eye):
@@ -41,19 +42,29 @@ ap.add_argument("-t", "--threshold", type = float, default=0.25,
   help="threshold to determine closed eyes")
 ap.add_argument("-f", "--frames", type = int, default=3,
   help="the number of consecutive frames the eye must be below the threshold")
-ap.add_argument("-s", "--interval", type = int, default=20,
+ap.add_argument("-s", "--interval", type = int, default=1,
   help="the interval of saving data , minutes")
-
+ap.add_argument("-x", "--send_address", type = str, default="127.0.0.1",
+  help="the sending address")
+ap.add_argument("-o", "--send_port", type = int, default=8080,
+  help="the sending port")
+#ap.add_argument("-l", "--send_interval", type = int, default= 1,
+#  help="the sending port")
 def main() :
     args = vars(ap.parse_args())
     EYE_AR_THRESH = args['threshold']
     EYE_AR_CONSEC_FRAMES = args['frames']
     INTERVAL = args['interval']
+    ip_addr = args['send_address']
+    ip_port = args['send_port']
+    ip = (ip_addr,ip_port)
+    udp_cli = socket(AF_INET,SOCK_DGRAM)
     df = pd.DataFrame(columns=["bid", "time"])
     # initialize the frame counters and the total number of blinks
 
     COUNTER = 0
     TOTAL = 0
+    UDP_TOTAL = 0
 
 
     
@@ -134,6 +145,7 @@ def main() :
           # if the eyes were closed for a sufficient number of
           # then increment the total number of blinks
           if COUNTER >= EYE_AR_CONSEC_FRAMES:
+            UDP_TOTAL += 1
             TOTAL += 1
             df.loc[df.shape[0]+1] = {"bid":TOTAL,"time":datetime.now()}
             time.sleep(0.50)
@@ -159,6 +171,8 @@ def main() :
         df.to_excel(filepath+"data.xlsx")
         break
       if (datetime.now()-start).seconds >= INTERVAL*60:
+        udp_cli.sendto(str(UDP_TOTAL).encode(),ip)
+        UDP_TOTAL = 0
         start = datetime.now()
         filepath = str(int(time.time()))
         df.to_csv(filepath+"data")
